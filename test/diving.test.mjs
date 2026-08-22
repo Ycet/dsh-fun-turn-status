@@ -179,3 +179,11 @@ test("客户端镜像：官方折叠卡片契约（默认收起/表头/箭头/�
 	assert.ok(client.includes("M11.8486 5.5"), "缺少原生箭头 path");
 	assert.ok(!client.includes('"\\u25BE"'), "不得使用文本三角字符");
 });
+
+test("客户端镜像：删除按钮为官方垃圾桶图标（内联 SVG path，无运行时依赖）", () => {
+	const client = readFileSync(join(root, "lib/client.js"), "utf8");
+	assert.ok(client.includes("TRASH_PATH"), "缺少垃圾桶 path 常量");
+	assert.ok(client.includes("M14.4782 4.84067"), "缺少官方垃圾桶 path（ic_ds_trash_outline_16）");
+	assert.ok(client.includes('viewBox: "0 0 16 16"'), "缺少垃圾桶 SVG");
+	assert.ok(!client.includes("\\u00D7"), "删除按钮不得使用 × 文本字符");
+});
