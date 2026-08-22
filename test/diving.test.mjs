@@ -174,4 +174,8 @@ test("客户端镜像：官方折叠卡片契约（默认收起/表头/箭头/�
 	assert.ok(client.includes("fts-chevron"), "缺少箭头指示");
 	assert.ok(client.includes('t("pending")'), "缺少未保存徽标");
 	assert.ok(client.includes("fts-cardOpen"), "缺少展开态样式");
+	// 箭头为 DSH 原生 IconChevronDownOutline14 SVG（与内置卡片一致），不得使用文本字符。
+	assert.ok(client.includes('viewBox: "0 0 14 14"'), "缺少原生箭头 SVG");
+	assert.ok(client.includes("M11.8486 5.5"), "缺少原生箭头 path");
+	assert.ok(!client.includes('"\\u25BE"'), "不得使用文本三角字符");
 });
