@@ -14,7 +14,7 @@
 | --- | --- |
 | 🎭 替换状态文案 | 任务运行中的 “Deep diving...” 替换为随机幽默文案（内置 30 条） |
 | 🔄 30 秒轮换 | 每 30 秒随机切换到另一条，不与当前重复 |
-| ⚙️ 可视化配置 | 「设置 → 插件 → 插件配置」页面增删改文案，最多 50 条 |
+| ⚙️ 可视化配置 | 「设置 → 插件 → 插件配置」页面增删改文案，最多 50 条；卡片按 DSH 官方契约实现（暂存编辑/已覆盖徽章/恢复默认/保存·放弃） |
 | 🥇 最高优先级 | 与 dsh-auto-collapse 等同类插件共存时，本插件最终胜出 |
 | ♻️ 即存即生效 | 保存后立即影响正在运行的任务，无需重启 |
 
@@ -57,12 +57,13 @@ cd <absolute-path-to-plugin> && pnpm install && npm test
 
 | 层 | 文件 | 职责 |
 | --- | --- | --- |
-| Host | `lib/index.js` | 注册 `fun-turn-status` settings 命名空间（schema + 默认 30 条文案） |
-| Client | `lib/client.js` | ModuleLoader bundle：DOM 文本接管器 + 「插件配置」卡片（zh/en 双语） |
+| Host | `lib/index.js` | 注册 `fun-turn-status` settings 命名空间（schema + 默认 30 条文案 + `draftErrors` 可测规范） |
+| Client | `lib/client.js` | ModuleLoader bundle：DOM 文本接管器 + 「插件配置」卡片（DSH 官方契约，zh/en 双语） |
 | 补丁 | `cordis.patch.yml` | insert `fun-turn-status` 插件行 |
 
 - “Deep diving...” 硬编码于 `@deepseek-ai/dsh-client-ui-conversation` 的 `TurnStatus` 组件（非 locale key、无槽位），因此采用 DOM 文本接管：以 `[role="status"][aria-live="polite"]` + `turnStatus` 类名（可读段）为识别特征，只改写首个子文本节点，保留计时器与渐变流光样式。
 - 文案池来自 settings 服务的解析值：用户未配置时回落内置 30 条；显式存空数组时表示“不接管”。
+- **配置卡片按 DSH 官方契约实现**：`settings.plugin.item` 键控槽位 + `settingsScope.bind`；控制器暴露 hooks 快照与 `edit/resetField/save/discard` 动作，暂存编辑 + base/user 覆盖层（「已覆盖」徽章）、恢复默认=暂存清除→保存时 `unset`、只读/失败态；条数/长度校验由 `@deepseek-ai/dsh-client-schema-form`（官方静态模块）对 describe 镜像的 `schema.toJSON()` rehydrate 后裁决，空串与 `Deep diving` 字样为补充自定义规则，错误提示中英双语映射。
 
 ## 🧪 测试
 

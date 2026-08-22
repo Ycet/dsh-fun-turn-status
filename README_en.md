@@ -14,7 +14,7 @@ Replaces the “Deep diving...” status text while a DeepSeek Harness task runs
 | --- | --- |
 | 🎭 Status text replacement | The running-task “Deep diving...” text becomes a random humorous message (30 built-ins) |
 | 🔄 30-second rotation | Switches to another random message every 30 s, never the current one |
-| ⚙️ Visual configuration | Add/remove/edit messages in Settings → Plugins → Plugin configuration (max 50) |
+| ⚙️ Visual configuration | Add/remove/edit messages in Settings → Plugins → Plugin configuration (max 50); the card follows the official DSH contract (staged edits / Overridden badge / Restore defaults / Save·Discard) |
 | 🥇 Highest priority | Wins over competing plugins such as dsh-auto-collapse |
 | ♻️ Live application | Saved changes affect the currently running task immediately, no restart |
 
@@ -57,12 +57,13 @@ If `dsh-auto-collapse` is installed in the profile, it rewrites text containing 
 
 | Layer | File | Responsibility |
 | --- | --- | --- |
-| Host | `lib/index.js` | Registers the `fun-turn-status` settings namespace (schema + 30 default messages) |
-| Client | `lib/client.js` | ModuleLoader bundle: DOM text takeover + the configuration card (zh/en) |
+| Host | `lib/index.js` | Registers the `fun-turn-status` settings namespace (schema + 30 default messages + `draftErrors` testable spec) |
+| Client | `lib/client.js` | ModuleLoader bundle: DOM text takeover + the configuration card (DSH official contract, zh/en) |
 | Patch | `cordis.patch.yml` | Inserts the `fun-turn-status` plugin row |
 
 - “Deep diving...” is hardcoded in the `TurnStatus` component of `@deepseek-ai/dsh-client-ui-conversation` (no locale key, no slot), so the takeover is DOM-based: the element is identified by `[role="status"][aria-live="polite"]` plus the readable `turnStatus` class segment; only the first text child is rewritten, keeping the timer and the shimmer gradient intact.
 - The message pool is the resolved settings value: the 30 built-ins until the user configures anything; an explicitly empty array means “no takeover”.
+- **The configuration card follows the official DSH contract**: the `settings.plugin.item` keyed slot plus `settingsScope.bind`; the controller exposes a hooks snapshot and `edit/resetField/save/discard` actions, staged edits with base/user override semantics (the “Overridden” badge), restore-defaults staged as a clear then `unset` on save, read-only and failed states; count/length validation is decided by `@deepseek-ai/dsh-client-schema-form` (an official static module) rehydrating the describe-mirror `schema.toJSON()`, with trimmed-empty and the `Deep diving` token as custom rules, errors mapped bilingually.
 
 ## 🧪 Tests
 

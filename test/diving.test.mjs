@@ -1,5 +1,6 @@
 // dsh-fun-turn-status — 单元测试（node --test）
-// 覆盖：默认文案表质量、校验规则、轮选取条逻辑、schema 解析、客户端镜像一致性。
+// 覆盖：默认文案表质量、draftErrors 校验规则（schema 裁决 + 自定义规则）、
+// 轮选取条逻辑、schema 解析、客户端镜像一致性（官方 schema-form 契约）。
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -7,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import {
 	BUILTIN_TEXT, DEFAULT_MESSAGES, FORBIDDEN_SUBSTRING,
-	MESSAGE_LIMIT, MESSAGE_MAX_LENGTH, SETTINGS_NAMESPACE, schema, validateMessages, pickNext
+	MESSAGE_LIMIT, MESSAGE_MAX_LENGTH, SETTINGS_NAMESPACE, schema, draftErrors, pickNext
 } from "../lib/index.js";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -63,36 +64,35 @@ test("pickNext：多条时永远避开当前条（含 current 不在池中与 nu
 	}
 });
 
-test("validateMessages：合法列表无错误；空列表合法", () => {
-	assert.deepEqual(validateMessages(DEFAULT_MESSAGES), []);
-	assert.deepEqual(validateMessages([]), []);
+test("draftErrors：合法列表无错误；空列表合法；非数组 → invalidItem", () => {
+	assert.deepEqual(draftErrors(DEFAULT_MESSAGES), []);
+	assert.deepEqual(draftErrors([]), []);
+	assert.deepEqual(draftErrors("不是数组"), ["invalidItem"]);
 });
 
-test("validateMessages：超过 50 条 → tooMany", () => {
+test("draftErrors：超过 50 条 → tooMany（schema 裁决）", () => {
 	const list = Array.from({ length: MESSAGE_LIMIT + 1 }, (_, i) => `第 ${i} 条`);
-	assert.deepEqual(validateMessages(list), ["tooMany"]);
-	assert.deepEqual(validateMessages(DEFAULT_MESSAGES), []);
+	assert.deepEqual(draftErrors(list), ["tooMany"]);
 });
 
-test("validateMessages：空串/纯空白 → empty", () => {
-	assert.deepEqual(validateMessages([""]), ["empty"]);
-	assert.deepEqual(validateMessages(["   "]), ["empty"]);
-	assert.deepEqual(validateMessages(["有效", "  ", "有效"]), ["empty"]);
+test("draftErrors：超过 50 字符 → tooLong（schema 裁决）", () => {
+	assert.deepEqual(draftErrors(["x".repeat(MESSAGE_MAX_LENGTH + 1)]), ["tooLong"]);
+	assert.deepEqual(draftErrors(["x".repeat(MESSAGE_MAX_LENGTH)]), []);
 });
 
-test("validateMessages：超过 50 字符 → tooLong", () => {
-	assert.deepEqual(validateMessages(["x".repeat(MESSAGE_MAX_LENGTH + 1)]), ["tooLong"]);
-	assert.deepEqual(validateMessages(["x".repeat(MESSAGE_MAX_LENGTH)]), []);
+test("draftErrors：空串/纯空白 → empty（自定义规则）", () => {
+	assert.deepEqual(draftErrors([""]), ["empty"]);
+	assert.deepEqual(draftErrors(["   "]), ["empty"]);
+	assert.deepEqual(draftErrors(["有效", "  ", "有效"]), ["empty"]);
 });
 
-test("validateMessages：含 Deep diving 字样 → forbidden", () => {
-	assert.deepEqual(validateMessages(["正在 Deep diving 测试"]), ["forbidden"]);
-	assert.deepEqual(validateMessages(["Deep diving"]), ["forbidden"]);
+test("draftErrors：含 Deep diving 字样 → forbidden（自定义规则）", () => {
+	assert.deepEqual(draftErrors(["正在 Deep diving 测试"]), ["forbidden"]);
+	assert.deepEqual(draftErrors(["Deep diving"]), ["forbidden"]);
 });
 
-test("validateMessages：非字符串条目 → invalidItem", () => {
-	assert.deepEqual(validateMessages([42]), ["invalidItem"]);
-	assert.deepEqual(validateMessages("不是数组"), ["invalidItem"]);
+test("draftErrors：非字符串条目 → invalidItem（自定义规则）", () => {
+	assert.deepEqual(draftErrors([42]), ["invalidItem"]);
 });
 
 test("schema：undefined 回落默认 30 条", () => {
@@ -134,11 +134,33 @@ test("客户端镜像与宿主半保持一致（常量与文案逐字同步）",
 	}
 });
 
-test("客户端镜像：接管器关键参数（30 秒轮换/1 秒守护/200ms 冷却）存在", () => {
+test("客户端镜像：官方 schema-form 契约存在（静态模块 + rehydrate + validateDraft）", () => {
+	const client = readFileSync(join(root, "lib/client.js"), "utf8");
+	assert.ok(client.includes('require("@deepseek-ai/dsh-client-schema-form")'), "缺少官方 schema-form require");
+	assert.ok(client.includes("rehydrateSchema"), "缺少 rehydrateSchema");
+	assert.ok(client.includes("validateDraft"), "缺少 validateDraft");
+	assert.ok(client.includes("settings.plugin.item"), "缺少官方槽位注册");
+	assert.ok(client.includes("overriddenBadge"), "缺少已覆盖徽章词典");
+	assert.ok(client.includes("resetField"), "缺少恢复默认动作");
+	assert.ok(client.includes("hooks: { funTurnStatusCard: store }"), "缺少 hooks 快照面");
+});
+
+test("客户端镜像：接管器关键参数（30 秒轮换/1 秒守护/200ms 冷却）存在且未被破坏", () => {
 	const client = readFileSync(join(root, "lib/client.js"), "utf8");
 	assert.ok(client.includes("const ROTATION_MS = 30000"), "缺少 30 秒轮换");
 	assert.ok(client.includes("const GUARD_MS = 1000"), "缺少 1 秒守护");
 	assert.ok(client.includes("const COOLDOWN_MS = 200"), "缺少冷却窗口");
 	assert.ok(client.includes('role="status"'), "缺少状态元素选择器");
 	assert.ok(client.includes('aria-live="polite"'), "缺少 aria-live 选择器");
+	assert.ok(client.includes('const inject = ["slots", "locale", "settingsScope", "connection"]'), "缺少官方 connection 注入");
+});
+
+test("客户端镜像：draftErrors 规则与宿主一致（自定义规则串与 schema 消息分类）", () => {
+	const client = readFileSync(join(root, "lib/client.js"), "utf8");
+	assert.ok(client.includes("FORBIDDEN_SUBSTRING"), "缺少禁用字样规则");
+	assert.ok(client.includes("trim().length === 0"), "缺少空串规则");
+	assert.ok(client.includes("/array length/"), "缺少 tooMany 分类");
+	assert.ok(client.includes("/string length <=/"), "缺少 tooLong 分类");
+	assert.ok(client.includes("/string length >=/"), "缺少 min 长度（空串）分类");
+	assert.ok(client.includes('"raw:"'), "缺少 raw 消息透出");
 });
