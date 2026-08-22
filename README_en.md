@@ -20,8 +20,20 @@ Replaces the “Deep diving...” status text while a DeepSeek Harness task runs
 
 ## 🚀 Quick Start
 
+### Option 1: Install from GitHub (recommended)
+
+Requires git to reach GitHub via `git+ssh` (or https) on this machine. One command installs and mounts it:
+
 ```bash
-# 1. Install (local development; afterwards just refresh the page for client changes)
+dsh plugin --profile web add github:Ycet/dsh-fun-turn-status
+```
+
+### Option 2: Local development install (source directory)
+
+For working on the plugin itself: client-code changes take effect on page refresh / HMR; bundle/Loader-layer changes need a `dsh web` restart.
+
+```bash
+# 1. Install (link points to the local source absolute path)
 dsh plugin --profile web add dsh-fun-turn-status@link:<absolute-path-to-plugin>
 
 # 2. Restart the web server so the bundle/Loader layer takes effect

@@ -20,8 +20,20 @@
 
 ## 🚀 快速开始
 
+### 方式一：从 GitHub 远程安装（推荐）
+
+要求本机 git 能用 `git+ssh`（或 https）访问 GitHub。一条命令即可安装并自动挂载：
+
 ```bash
-# 1. 安装（本地开发，修改源码后只需刷新页面）
+dsh plugin --profile web add github:Ycet/dsh-fun-turn-status
+```
+
+### 方式二：本地开发安装（源码目录）
+
+适合二次开发：改动客户端代码后刷新页面 / HMR 即可生效；bundle/Loader 层改动需重启 `dsh web`。
+
+```bash
+# 1. 安装（link 指向本地源码绝对路径）
 dsh plugin --profile web add dsh-fun-turn-status@link:<absolute-path-to-plugin>
 
 # 2. 重启 web 使 bundle/Loader 层生效
