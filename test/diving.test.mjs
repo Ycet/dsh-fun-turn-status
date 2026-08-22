@@ -134,11 +134,13 @@ test("客户端镜像与宿主半保持一致（常量与文案逐字同步）",
 	}
 });
 
-test("客户端镜像：官方 schema-form 契约存在（静态模块 + rehydrate + validateDraft）", () => {
+test("客户端镜像：官方契约存在（槽位/scope/徽章/动作面），且不 require 宿主侧包", () => {
 	const client = readFileSync(join(root, "lib/client.js"), "utf8");
-	assert.ok(client.includes('require("@deepseek-ai/dsh-client-schema-form")'), "缺少官方 schema-form require");
-	assert.ok(client.includes("rehydrateSchema"), "缺少 rehydrateSchema");
-	assert.ok(client.includes("validateDraft"), "缺少 validateDraft");
+	// 浏览器模块表只能解析 shell seed（react 等）与图行包；
+	// 宿主侧包（如 @deepseek-ai/dsh-client-schema-form）被 require 会整包加载失败。
+	assert.ok(!client.includes('require("@deepseek-ai/dsh-client-schema-form")'), "不得 require 宿主侧包 schema-form");
+	assert.ok(!client.includes("rehydrateSchema"), "不得使用 rehydrateSchema");
+	assert.ok(!client.includes("validateDraft"), "不得使用 validateDraft");
 	assert.ok(client.includes("settings.plugin.item"), "缺少官方槽位注册");
 	assert.ok(client.includes("overriddenBadge"), "缺少已覆盖徽章词典");
 	assert.ok(client.includes("resetField"), "缺少恢复默认动作");
@@ -152,15 +154,13 @@ test("客户端镜像：接管器关键参数（30 秒轮换/1 秒守护/200ms �
 	assert.ok(client.includes("const COOLDOWN_MS = 200"), "缺少冷却窗口");
 	assert.ok(client.includes('role="status"'), "缺少状态元素选择器");
 	assert.ok(client.includes('aria-live="polite"'), "缺少 aria-live 选择器");
-	assert.ok(client.includes('const inject = ["slots", "locale", "settingsScope", "connection"]'), "缺少官方 connection 注入");
+	assert.ok(client.includes('const inject = ["slots", "locale", "settingsScope"]'), "服务注入缺失");
 });
 
-test("客户端镜像：draftErrors 规则与宿主一致（自定义规则串与 schema 消息分类）", () => {
+test("客户端镜像：draftErrors 规则与宿主一致（条数/长度/空串/禁用字样）", () => {
 	const client = readFileSync(join(root, "lib/client.js"), "utf8");
 	assert.ok(client.includes("FORBIDDEN_SUBSTRING"), "缺少禁用字样规则");
 	assert.ok(client.includes("trim().length === 0"), "缺少空串规则");
-	assert.ok(client.includes("/array length/"), "缺少 tooMany 分类");
-	assert.ok(client.includes("/string length <=/"), "缺少 tooLong 分类");
-	assert.ok(client.includes("/string length >=/"), "缺少 min 长度（空串）分类");
-	assert.ok(client.includes('"raw:"'), "缺少 raw 消息透出");
+	assert.ok(client.includes("messages.length > MESSAGE_LIMIT"), "缺少条数上限规则");
+	assert.ok(client.includes("item.length > MESSAGE_MAX_LENGTH"), "缺少单条长度上限规则");
 });

@@ -63,7 +63,7 @@ cd <absolute-path-to-plugin> && pnpm install && npm test
 
 - “Deep diving...” 硬编码于 `@deepseek-ai/dsh-client-ui-conversation` 的 `TurnStatus` 组件（非 locale key、无槽位），因此采用 DOM 文本接管：以 `[role="status"][aria-live="polite"]` + `turnStatus` 类名（可读段）为识别特征，只改写首个子文本节点，保留计时器与渐变流光样式。
 - 文案池来自 settings 服务的解析值：用户未配置时回落内置 30 条；显式存空数组时表示“不接管”。
-- **配置卡片按 DSH 官方契约实现**：`settings.plugin.item` 键控槽位 + `settingsScope.bind`；控制器暴露 hooks 快照与 `edit/resetField/save/discard` 动作，暂存编辑 + base/user 覆盖层（「已覆盖」徽章）、恢复默认=暂存清除→保存时 `unset`、只读/失败态；条数/长度校验由 `@deepseek-ai/dsh-client-schema-form`（官方静态模块）对 describe 镜像的 `schema.toJSON()` rehydrate 后裁决，空串与 `Deep diving` 字样为补充自定义规则，错误提示中英双语映射。
+- **配置卡片按 DSH 官方契约实现**：`settings.plugin.item` 键控槽位 + `settingsScope.bind`；控制器暴露 hooks 快照与 `edit/resetField/save/discard` 动作，暂存编辑 + base/user 覆盖层（「已覆盖」徽章）、恢复默认=暂存清除→保存时 `unset`、只读/失败态；客户端用与宿主一致的镜像规则做前端拦截（条数/长度/空串/含 `Deep diving` 字样），宿主 schema 是唯一权威——settings 服务对每次写入都做 schema 校验，错误提示中英双语映射。注意：浏览器模块表只解析 shell seed（react 等）与 `dsh.client` 图行包，宿主侧包（如 `@deepseek-ai/dsh-client-schema-form`）不能被第三方 bundle require。
 
 ## 🧪 测试
 
