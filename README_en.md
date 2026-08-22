@@ -54,16 +54,6 @@ Entry point: **Settings → Plugins → Plugin configuration** (alongside the Te
 - Save validation: 1–50 chars per message, at most 50 messages total, and messages **must not contain the literal `Deep diving`** (see the priority note below);
 - An empty list keeps the original “Deep diving...” display (no takeover).
 
-### Coexistence with dsh-auto-collapse
-
-If `dsh-auto-collapse` is installed in the profile, it rewrites text containing `Deep diving` into “Deep sleeping”. This plugin keeps the highest priority through three mechanisms:
-
-1. **Save-time rejection of `Deep diving`** — our messages never trigger the other plugin, eliminating write fights at the root;
-2. **Instant reclamation via MutationObserver** — any remount or third-party rewrite is reverted immediately (200 ms cooldown prevents unlimited write storms);
-3. **1-second guard rewrite** — at any moment, the final write within ~1 s belongs to this plugin.
-
-> Note: writing messages containing `Deep diving` directly into `settings.yaml` bypasses validation and causes a ~1 Hz mutual rewrite loop between the two plugins — avoid it.
-
 ## 🧩 How It Works (for developers)
 
 | Layer | File | Responsibility |
