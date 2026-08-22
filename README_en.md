@@ -14,7 +14,7 @@ Replaces the “Deep diving...” status text while a DeepSeek Harness task runs
 | --- | --- |
 | 🎭 Status text replacement | The running-task “Deep diving...” text becomes a random humorous message (30 built-ins) |
 | 🔄 30-second rotation | Switches to another random message every 30 s, never the current one |
-| ⚙️ Visual configuration | Add/remove/edit messages in Settings → Plugins → Plugin configuration (max 50); the card follows the official DSH contract (staged edits / Overridden badge / Restore defaults / Save·Discard) |
+| ⚙️ Visual configuration | Add/remove/edit messages in Settings → Plugins → Plugin configuration (max 50); official collapsible card (collapsed by default, click the header to expand; staged edits / Overridden badge / Restore defaults / Unsaved badge / Save·Discard) |
 | 🥇 Highest priority | Wins over competing plugins such as dsh-auto-collapse |
 | ♻️ Live application | Saved changes affect the currently running task immediately, no restart |
 

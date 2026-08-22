@@ -164,3 +164,14 @@ test("客户端镜像：draftErrors 规则与宿主一致（条数/长度/空串
 	assert.ok(client.includes("messages.length > MESSAGE_LIMIT"), "缺少条数上限规则");
 	assert.ok(client.includes("item.length > MESSAGE_MAX_LENGTH"), "缺少单条长度上限规则");
 });
+
+test("客户端镜像：官方折叠卡片契约（默认收起/表头/箭头/未保存徽标）", () => {
+	const client = readFileSync(join(root, "lib/client.js"), "utf8");
+	assert.ok(client.includes('"fts-card fts-cardOpen"'), "缺少折叠卡片根节点/展开态类名");
+	assert.ok(client.includes("fts-cardHead"), "缺少可点击表头");
+	assert.ok(client.includes('"aria-expanded": open'), "缺少展开状态 ARIA");
+	assert.ok(client.includes("fts-cardBody"), "缺少折叠配置体");
+	assert.ok(client.includes("fts-chevron"), "缺少箭头指示");
+	assert.ok(client.includes('t("pending")'), "缺少未保存徽标");
+	assert.ok(client.includes("fts-cardOpen"), "缺少展开态样式");
+});
