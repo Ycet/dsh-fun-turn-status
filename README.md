@@ -1,0 +1,77 @@
+# dsh-fun-turn-status
+
+把 DeepSeek Harness 任务运行中的 “Deep diving...” 状态文案，替换为会随机轮换的幽默文案 —— 每 30 秒换一条，再也不无聊。
+
+[![中文](https://img.shields.io/badge/简体中文-red?style=for-the-badge)](README.md)
+[![EN](https://img.shields.io/badge/English-blue?style=for-the-badge)](README_en.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+
+---
+
+## ✨ 功能
+
+| 功能 | 说明 |
+| --- | --- |
+| 🎭 替换状态文案 | 任务运行中的 “Deep diving...” 替换为随机幽默文案（内置 30 条） |
+| 🔄 30 秒轮换 | 每 30 秒随机切换到另一条，不与当前重复 |
+| ⚙️ 可视化配置 | 「设置 → 插件 → 插件配置」页面增删改文案，最多 50 条 |
+| 🥇 最高优先级 | 与 dsh-auto-collapse 等同类插件共存时，本插件最终胜出 |
+| ♻️ 即存即生效 | 保存后立即影响正在运行的任务，无需重启 |
+
+## 🚀 快速开始
+
+```bash
+# 1. 安装（本地开发，修改源码后只需刷新页面）
+dsh plugin --profile web add dsh-fun-turn-status@link:<absolute-path-to-plugin>
+
+# 2. 重启 web 使 bundle/Loader 层生效
+#    在运行 dsh web 的终端 Ctrl+C，然后重新运行 dsh web
+
+# 3. 运行单元测试
+cd <absolute-path-to-plugin> && pnpm install && npm test
+```
+
+刷新页面后，任意发起一个任务：状态栏文案立即变为幽默文案，且每 30 秒随机切换。
+
+## ⚙️ 配置说明
+
+配置入口：**设置 → 插件 → 插件配置**（与“终端 / Agent 循环 / 网页搜索”卡片并列）。
+
+- 每条文案可编辑、可删除；底部输入框 + 「添加」新增文案；
+- 右上角显示 `N/50` 计数，达到 50 条时自动锁定添加；
+- 「保存」一次性写入（`~/.dsh/settings.yaml` 的 `fun-turn-status:` 段）；「放弃」丢弃未保存修改；「恢复默认」清除用户覆盖、回落内置 30 条；
+- 保存校验：每条 1–50 字符、总数 ≤ 50、**不得包含字面量 `Deep diving`**（见下方优先级说明）；
+- 列表为空时保留原始 “Deep diving...” 展示（不接管）。
+
+### 与 dsh-auto-collapse 的共存
+
+本机 profile 中若安装了 `dsh-auto-collapse`，它会把含 `Deep diving` 字样的文本改为 “Deep sleeping”。本插件通过三重机制保证优先级：
+
+1. **保存时拒绝含 `Deep diving` 字样的文案** —— 我们的文案永远不会触发对方改写，从根源上消除互写；
+2. **MutationObserver 即时抢回** —— React 重挂载或第三方改写后立即恢复我们的文案（200ms 冷却防止无限互写风暴）；
+3. **1 秒守护重写** —— 任意时刻 1 秒内最终写入权归本插件。
+
+> 注意：直接手改 `settings.yaml` 绕过校验写入含 `Deep diving` 的文案，会造成两插件以约 1 秒为周期互相改写，请避免。
+
+## 🧩 工作原理（开发者视角）
+
+| 层 | 文件 | 职责 |
+| --- | --- | --- |
+| Host | `lib/index.js` | 注册 `fun-turn-status` settings 命名空间（schema + 默认 30 条文案） |
+| Client | `lib/client.js` | ModuleLoader bundle：DOM 文本接管器 + 「插件配置」卡片（zh/en 双语） |
+| 补丁 | `cordis.patch.yml` | insert `fun-turn-status` 插件行 |
+
+- “Deep diving...” 硬编码于 `@deepseek-ai/dsh-client-ui-conversation` 的 `TurnStatus` 组件（非 locale key、无槽位），因此采用 DOM 文本接管：以 `[role="status"][aria-live="polite"]` + `turnStatus` 类名（可读段）为识别特征，只改写首个子文本节点，保留计时器与渐变流光样式。
+- 文案池来自 settings 服务的解析值：用户未配置时回落内置 30 条；显式存空数组时表示“不接管”。
+
+## 🧪 测试
+
+```bash
+npm test
+```
+
+覆盖：默认文案 30 条去重/长度/禁用字样、校验规则（空/超长/禁用/超限/非法条目）、轮选取条（空池/单条/两条/避开当前条）、schema 默认与上限、客户端镜像与宿主半逐字一致。
+
+## 📄 许可证
+
+MIT © dsh-fun-turn-status contributors

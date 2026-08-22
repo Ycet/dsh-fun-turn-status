@@ -1,0 +1,41 @@
+{
+  "name": "dsh-fun-turn-status",
+  "version": "1.0.0",
+  "description": "替换 DSH 任务运行中的 “Deep diving...” 状态文案：每 30 秒随机轮换幽默文案，可在「设置-插件-插件配置」页增删改（最多 50 条），与其他同类插件共存时优先级最高。",
+  "type": "module",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "schemastery": "^3.18.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ],
+      "platform": "web"
+    }
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml"
+  ],
+  "license": "MIT"
+}
