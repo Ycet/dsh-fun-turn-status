@@ -54,16 +54,6 @@ cd <absolute-path-to-plugin> && pnpm install && npm test
 - 保存校验：每条 1–50 字符、总数 ≤ 50、**不得包含字面量 `Deep diving`**（见下方优先级说明）；
 - 列表为空时保留原始 “Deep diving...” 展示（不接管）。
 
-### 与 dsh-auto-collapse 的共存
-
-本机 profile 中若安装了 `dsh-auto-collapse`，它会把含 `Deep diving` 字样的文本改为 “Deep sleeping”。本插件通过三重机制保证优先级：
-
-1. **保存时拒绝含 `Deep diving` 字样的文案** —— 我们的文案永远不会触发对方改写，从根源上消除互写；
-2. **MutationObserver 即时抢回** —— React 重挂载或第三方改写后立即恢复我们的文案（200ms 冷却防止无限互写风暴）；
-3. **1 秒守护重写** —— 任意时刻 1 秒内最终写入权归本插件。
-
-> 注意：直接手改 `settings.yaml` 绕过校验写入含 `Deep diving` 的文案，会造成两插件以约 1 秒为周期互相改写，请避免。
-
 ## 🧩 工作原理（开发者视角）
 
 | 层 | 文件 | 职责 |
