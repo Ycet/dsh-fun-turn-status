@@ -178,6 +178,11 @@ test("客户端镜像：官方折叠卡片契约（默认收起/表头/箭头/�
 	assert.ok(client.includes('viewBox: "0 0 14 14"'), "缺少原生箭头 SVG");
 	assert.ok(client.includes("M11.8486 5.5"), "缺少原生箭头 path");
 	assert.ok(!client.includes('"\\u25BE"'), "不得使用文本三角字符");
+	// 表头描述存在，但已裁剪掉红框圈出的后段（dsh-auto-collapse 优先级字样）。
+	assert.ok(client.includes("fts-cardHeadDescription"), "缺少表头描述元素");
+	assert.ok(client.includes('t("description")'), "缺少 description 词典键");
+	assert.ok(client.includes("每 30 秒随机切换一条。"), "缺少描述前段文案");
+	assert.ok(!client.includes("共存时本插件优先级最高"), "描述不得含红框后段文案");
 });
 
 test("客户端镜像：删除按钮为官方垃圾桶图标（内联 SVG path，无运行时依赖）", () => {
