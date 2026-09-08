@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import {
-	BUILTIN_TEXT, DEFAULT_MESSAGES, FORBIDDEN_SUBSTRING,
+	DEFAULT_MESSAGES, FORBIDDEN_SUBSTRING,
 	MESSAGE_LIMIT, MESSAGE_MAX_LENGTH, SETTINGS_NAMESPACE, schema, draftErrors, pickNext
 } from "../lib/index.js";
 
@@ -119,7 +119,6 @@ test("schema：接受合法自定义列表（含单条）", () => {
 test("命名空间：kebab-case 且为 fun-turn-status", () => {
 	assert.equal(SETTINGS_NAMESPACE, "fun-turn-status");
 	assert.match(SETTINGS_NAMESPACE, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-	assert.equal(BUILTIN_TEXT, "Deep diving...");
 });
 
 test("客户端镜像与宿主半保持一致（常量与文案逐字同步）", () => {
@@ -128,7 +127,11 @@ test("客户端镜像与宿主半保持一致（常量与文案逐字同步）",
 	assert.ok(client.includes(`const MESSAGE_LIMIT = ${MESSAGE_LIMIT}`), "MESSAGE_LIMIT 镜像缺失");
 	assert.ok(client.includes(`const MESSAGE_MAX_LENGTH = ${MESSAGE_MAX_LENGTH}`), "MESSAGE_MAX_LENGTH 镜像缺失");
 	assert.ok(client.includes(`const FORBIDDEN_SUBSTRING = "${FORBIDDEN_SUBSTRING}"`), "FORBIDDEN_SUBSTRING 镜像缺失");
-	assert.ok(client.includes(`const BUILTIN_TEXT = "${BUILTIN_TEXT}"`), "BUILTIN_TEXT 镜像缺失");
+	assert.ok(client.includes("const NATIVE_STATUS_PATTERN"), "缺少宿主原文识别模式");
+	assert.ok(client.includes("const nativeText = new WeakMap()"), "缺少逐元素宿主原文缓存");
+	assert.ok(client.includes("const lastPluginText = new WeakMap()"), "缺少插件写入归属缓存");
+	assert.ok(!client.includes("apply(BUILTIN_TEXT)"), "不得用固定英文文案恢复空池");
+	assert.ok(!client.includes("first.data = BUILTIN_TEXT"), "不得用固定英文文案恢复卸载状态");
 	for (const message of DEFAULT_MESSAGES) {
 		assert.ok(client.includes(JSON.stringify(message)), `客户端缺失默认文案: ${message}`);
 	}
