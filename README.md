@@ -1,5 +1,8 @@
 # dsh-fun-turn-status
 
+> [!WARNING]
+> **该插件已停止更新与维护。** 本仓库不再新增功能、不再适配新版 DeepSeek Harness，也不再处理问题反馈；现有代码仅作存档参考，可能无法在当前版本中正常工作，请谨慎使用。
+
 把 DeepSeek Harness 任务运行中的 “Deep diving...” 状态文案，替换为会随机轮换的幽默文案 —— 每 30 秒换一条，再也不无聊。
 
 [![中文](https://img.shields.io/badge/简体中文-red?style=for-the-badge)](README.md)

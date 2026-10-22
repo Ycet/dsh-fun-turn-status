@@ -1,5 +1,8 @@
 # dsh-fun-turn-status
 
+> [!WARNING]
+> **This plugin is no longer updated or maintained.** No new features, compatibility updates for newer DeepSeek Harness releases, or issue fixes will be provided; the existing code is kept for archival reference only and may not work with current versions. Use at your own risk.
+
 Replaces the “Deep diving...” status text while a DeepSeek Harness task runs, rotating to a random humorous message every 30 seconds.
 
 [![中文](https://img.shields.io/badge/简体中文-red?style=for-the-badge)](README.md)
